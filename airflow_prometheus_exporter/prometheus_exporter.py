@@ -261,7 +261,10 @@ def get_task_duration_info():
                 TaskInstance.task_id,
                 TaskInstance.start_date,
                 TaskInstance.end_date,
-                TaskInstance.execution_date,
+                DagRun.execution_date,
+            )
+            .join(
+                DagRun, TaskInstance.run_id == DagRun.run_id
             )
             .join(
                 max_execution_dt_query,
@@ -319,7 +322,7 @@ def get_task_scheduler_delay():
         return (
             session.query(
                 task_status_query.c.queue,
-                TaskInstance.execution_date,
+                DagRun.execution_date,
                 TaskInstance.queued_dttm,
                 task_status_query.c.max_start.label("start_date"),
             )
@@ -329,6 +332,9 @@ def get_task_scheduler_delay():
                     TaskInstance.queue == task_status_query.c.queue,
                     TaskInstance.start_date == task_status_query.c.max_start,
                 ),
+            )
+            .join(
+                DagRun, TaskInstance.run_id == DagRun.run_id
             )
             .filter(
                 TaskInstance.dag_id
